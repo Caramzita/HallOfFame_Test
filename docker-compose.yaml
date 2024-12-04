@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  postgres:
+    container_name: Postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: "hallOfFame_db"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "admin"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+
+  hallOfFame:
+    image: hall_of_fame:latest
+    container_name: HallOfFame
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DatabaseConnection=Server=postgres;Port=5432;Database=hallOfFame_db;User Id=postgres;Password=admin;
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    restart: always
+
+volumes:
+  postgres-data:
