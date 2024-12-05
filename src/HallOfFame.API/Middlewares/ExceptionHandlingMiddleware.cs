@@ -65,7 +65,7 @@ public class ExceptionHandlingMiddleware
                 break;
             case Exception ex:
                 statusCode = HttpStatusCode.InternalServerError;
-                var errorMessage = "Error: " + ex.Message;
+                var errorMessage = ex.Message;
                 result = JsonSerializer.Serialize(new { errorMessage });
                 break;
             default:
