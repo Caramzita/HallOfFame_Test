@@ -7,70 +7,105 @@ using MediatR;
 using HallOfFame.UseCases.Persons.Commands.UpdatePerson;
 using HallOfFame.UseCases.Persons.Commands.DeletePerson;
 using HallOfFame.UseCases.Persons.Queries;
+using Asp.Versioning;
 
-namespace HallOfFame.API.Controllers
+namespace HallOfFame.API.Controllers;
+
+/// <summary>
+/// Предоставляет Rest API для работы с сотрудниками.
+/// </summary>
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
+[ApiController]
+public class PersonsController : ControllerBase
 {
-    [Route("api/v1/persons")]
-    [ApiController]
-    public class PersonsController : ControllerBase
+    private readonly IMapper _mapper;
+
+    private readonly IMediator _mediator;
+
+    /// <summary>
+    /// Инициализирует новый экземпляр класса <see cref="PersonsController"/>.
+    /// </summary>
+    /// <param name="mediator"> Интерфейс для отправки команд и запросов через Mediator. </param>
+    /// <param name="mapper"> Интерфейс для маппинга данных между моделями. </param>
+    /// <exception cref="ArgumentNullException"> Ошибка загрузки интерфейса. </exception>
+    public PersonsController(IMapper mapper, IMediator mediator)
     {
-        private readonly IMapper _mapper;
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+    }
 
-        private readonly IMediator _mediator;
+    /// <summary>
+    /// Получить всех сотрудников.
+    /// </summary>
+    [MapToApiVersion("1.0")]
+    [HttpGet]
+    public IAsyncEnumerable<Person> GetAllPersons()
+    {
+        var query = new GetAllPersonsQuery();
 
-        public PersonsController(IMapper mapper, IMediator mediator)
-        {
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-        }
+        return _mediator.CreateStream(query);
+    }
 
-        [HttpGet]
-        public IAsyncEnumerable<Person> GetAllPersons()
-        {
-            var query = new GetAllProfilesQuery();
+    /// <summary>
+    /// Получить сотрудника по идентификатору.
+    /// </summary>
+    /// <param name="id"> Идентификатор сотрудника. </param>
+    [MapToApiVersion("1.0")]
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetPersonById(long id)
+    {
+        var query = new GetPersonQuery(id);
 
-            return _mediator.CreateStream(query);
-        }
+        var result = await _mediator.Send(query);
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetPersonById(long id)
-        {
-            var query = new GetPersonQuery(id);
+        return Ok(result);
+    }
 
-            var result = await _mediator.Send(query);
+    /// <summary>
+    /// Добавить сотрудника.
+    /// </summary>
+    /// <param name="request"> Модель данных сотрудника. </param>
+    [MapToApiVersion("1.0")]
+    [HttpPost]
+    [ProducesResponseType(typeof(Person), 201)]
+    [ProducesResponseType(typeof(List<string>), 400)]
+    public async Task<IActionResult> AddPerson([FromBody] PersonRequestDto request)
+    {
+        var command = _mapper.Map<AddPersonCommand>(request);
+        var result = await _mediator.Send(command);
 
-            return Ok(result);
-        }
+        return CreatedAtAction(nameof(GetPersonById), new { id = result.Id }, result);
+    }
 
-        [HttpPost]
-        [ProducesResponseType(typeof(Person), 201)]
-        [ProducesResponseType(typeof(List<string>), 400)]
-        public async Task<IActionResult> AddPerson([FromBody] PersonRequestDto request)
-        {
-            var command = _mapper.Map<AddPersonCommand>(request);
-            var result = await _mediator.Send(command);
+    /// <summary>
+    /// Обновить данные сотрудника.
+    /// </summary>
+    /// <param name="id"> Идентификатор сотрудника. </param>
+    /// <param name="request"> Модель данных сотрудника. </param>
+    [MapToApiVersion("1.0")]
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdatePerson(long id, [FromBody] PersonRequestDto request)
+    {
+        var command = _mapper.Map<UpdatePersonCommand>(request);
+        command.Id = id;
 
-            return CreatedAtAction(nameof(GetPersonById), new { id = result.Id }, result);
-        }
+        var result = await _mediator.Send(command);
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePerson(long id, [FromBody] PersonRequestDto request)
-        {
-            var command = _mapper.Map<UpdatePersonCommand>(request);
-            command.Id = id;
+        return Ok(result);
+    }
 
-            var result = await _mediator.Send(command);
+    /// <summary>
+    /// Удалить сотрудника.
+    /// </summary>
+    /// <param name="id"> Идентификатор сотрудника. </param>
+    [MapToApiVersion("1.0")]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeletePerson(long id)
+    {
+        var command = new DeletePersonCommand(id);
+        await _mediator.Send(command);
 
-            return Ok(result);
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePerson(long id)
-        {
-            var command = new DeletePersonCommand(id);
-            await _mediator.Send(command);
-
-            return NoContent();
-        }
+        return NoContent();
     }
 }

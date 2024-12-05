@@ -1,22 +1,21 @@
 ﻿namespace HallOfFame.Core;
 
+/// <summary>
+/// Навык.
+/// </summary>
 public class Skill
 {
+    /// <summary>
+    /// Название навыка.
+    /// </summary>
     public string Name { get; private set; }
 
-    public byte Level { get; private set; }
-
-    public Skill(string name, byte level)
+    /// <summary>
+    /// Создает новый экземпляр класса <see cref="Skill"/> с указанным названием навыка.
+    /// </summary>
+    /// <param name="name"> Название навыка. </param>
+    public Skill(string name)
     {
         Name = name;
-        Level = level;
-    }
-
-    public void UpdateLevel(byte level)
-    {
-        if (level >= 1 ||  level <= 10)
-        {
-            Level = level;
-        }
-    }
+    }  
 }

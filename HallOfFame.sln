@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HallOfFame.UseCases", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HallOfFame.Contracts", "src\HallOfFame.Contracts\HallOfFame.Contracts.csproj", "{7F8ED8AA-CE95-40E6-A113-1B59FDBCCBBC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HallOfFame.Tests", "tests\HallOfFame.Tests\HallOfFame.Tests.csproj", "{44E8B6BF-5311-461F-8A4C-A4FC97D3B1E9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HallOfFame.IntegrationTests", "tests\HallOfFame.IntegrationTests\HallOfFame.IntegrationTests.csproj", "{1D66ABDB-90B8-4724-A4C3-F03E18E50EA2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{7F8ED8AA-CE95-40E6-A113-1B59FDBCCBBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F8ED8AA-CE95-40E6-A113-1B59FDBCCBBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F8ED8AA-CE95-40E6-A113-1B59FDBCCBBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44E8B6BF-5311-461F-8A4C-A4FC97D3B1E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44E8B6BF-5311-461F-8A4C-A4FC97D3B1E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44E8B6BF-5311-461F-8A4C-A4FC97D3B1E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44E8B6BF-5311-461F-8A4C-A4FC97D3B1E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D66ABDB-90B8-4724-A4C3-F03E18E50EA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D66ABDB-90B8-4724-A4C3-F03E18E50EA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D66ABDB-90B8-4724-A4C3-F03E18E50EA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D66ABDB-90B8-4724-A4C3-F03E18E50EA2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

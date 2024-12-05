@@ -1,8 +1,13 @@
 ﻿using FluentValidation;
 using MediatR;
 
-namespace HallOfFame.API.Middlewares;
+namespace HallOfFame.API.Behaviors;
 
+/// <summary>
+/// Поведение для валидации запросов в конвейере обработки запросов Mediator.
+/// </summary>
+/// <typeparam name="TRequest"> Тип запроса, который обрабатывается. </typeparam>
+/// <typeparam name="TResponse"> Тип ответа, который возвращается после обработки запроса. </typeparam>
 public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {

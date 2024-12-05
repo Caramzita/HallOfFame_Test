@@ -10,6 +10,9 @@ using HallOfFame.DataAccess.Repositories;
 using FluentValidation;
 using HallOfFame.API.Middlewares;
 using HallOfFame.API.Profiles;
+using HallOfFame.API.Behaviors;
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 
 internal class Program
 {
@@ -46,15 +49,53 @@ internal class Program
 
         var services = builder.Services;
 
-        services.AddControllers();
-        services.AddEndpointsApiExplorer();
         services.AddHealthChecks();
+
+        services.AddApiVersioning(options =>
+        {
+            options.DefaultApiVersion = new ApiVersion(1, 0);
+            options.AssumeDefaultVersionWhenUnspecified = true;
+            options.ReportApiVersions = true;
+            options.ApiVersionReader = ApiVersionReader.Combine(
+                new UrlSegmentApiVersionReader(),
+                new HeaderApiVersionReader("X-Api-Version")
+            );
+        }).AddApiExplorer(options =>
+        {
+            options.GroupNameFormat = "'v'VVV";
+            options.SubstituteApiVersionInUrl = true;
+        });
+
+        services.AddEndpointsApiExplorer();
+        services.AddControllers();
 
         var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
         var xmlFilePath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-        services.AddSwaggerGen(opts =>
+
+        builder.Services.AddSwaggerGen(options =>
         {
-            opts.IncludeXmlComments(xmlFilePath);
+            options.IncludeXmlComments(xmlFilePath);
+
+            var provider = builder.Services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
+
+            foreach (var description in provider.ApiVersionDescriptions)
+            {
+                options.SwaggerDoc(description.GroupName, new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = $"My API {description.ApiVersion}",
+                    Version = description.ApiVersion.ToString(),
+                    Description = description.IsDeprecated ? "This API version is deprecated." : ""
+                });
+            }
+
+            options.DocInclusionPredicate((version, desc) =>
+            {
+                var actionApiVersion = desc.ActionDescriptor.EndpointMetadata
+                    .OfType<ApiVersionAttribute>()
+                    .SelectMany(attr => attr.Versions);
+
+                return actionApiVersion.Any(v => $"v{v}" == version || v.ToString() == version || $"v{v.MajorVersion}" == version);
+            });
         });
 
         services.AddHttpContextAccessor();
@@ -83,8 +124,7 @@ internal class Program
         services.AddAutoMapper(typeof(ControllerMappingProfile).Assembly);
 
         services.AddScoped<IPersonRepository, PersonRepository>();
-
-        //services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+        services.AddScoped<ISkillRepository, SkillRepository>();
 
         services.AddValidatorsFromAssemblyContaining<AddPersonCommandValidator>();
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
@@ -98,7 +138,17 @@ internal class Program
         {
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseSwaggerUI(options =>
+            {
+                var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+                foreach (var description in provider.ApiVersionDescriptions)
+                {
+                    options.SwaggerEndpoint(
+                        $"/swagger/{description.GroupName}/swagger.json",
+                        description.GroupName.ToUpperInvariant());
+                }
+            });
         }
 
         app.UseHttpsRedirection();
@@ -111,10 +161,23 @@ internal class Program
 
         app.MapControllers();
 
-        using (var scope = app.Services.CreateScope())
+        if (app.Environment.IsDevelopment())
         {
-            var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
-            db.Database.Migrate();
+            using var scope = app.Services.CreateScope();
+            var serviceProvider = scope.ServiceProvider;
+            try
+            {
+                var db = serviceProvider.GetRequiredService<DatabaseContext>();
+                db.Database.Migrate();
+                var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+                logger.LogInformation("Database migration applied successfully in Development environment.");
+            }
+            catch (Exception ex)
+            {
+                var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, "An error occurred while applying database migrations.");
+                throw;
+            }
         }
 
         await app.RunAsync();

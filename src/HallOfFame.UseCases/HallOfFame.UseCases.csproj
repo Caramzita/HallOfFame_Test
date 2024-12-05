@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\HallOfFame.Contracts\HallOfFame.Contracts.csproj" />
     <ProjectReference Include="..\HallOfFame.Core\HallOfFame.Core.csproj" />
   </ItemGroup>
 

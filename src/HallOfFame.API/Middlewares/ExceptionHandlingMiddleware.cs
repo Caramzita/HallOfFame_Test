@@ -5,13 +5,26 @@ using System.Text.Json;
 
 namespace HallOfFame.API.Middlewares;
 
+/// <summary>
+/// Обрабатывает исключения, возникающие во время обработки HTTP-запросов.
+/// </summary>
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
 
+    /// <summary>
+    /// Конструктор для инициализации обработчика исключений.
+    /// </summary>
+    /// <param name="next"> Делегат, представляющий следующий компонент в конвейере обработки запросов. </param>
+    /// <exception cref="ArgumentNullException"> Выбрасывается, если <paramref name="next"/> равен null. </exception>
     public ExceptionHandlingMiddleware(RequestDelegate next) =>
         _next = next ?? throw new ArgumentNullException(nameof(next));
 
+    /// <summary>
+    /// Метод для обработки HTTP-запроса и перехвата исключений.
+    /// </summary>
+    /// <param name="context"> Контекст HTTP-запроса. </param>
+    /// <returns> Задача, представляющая асинхронную операцию. </returns>
     public async Task Invoke(HttpContext context)
     {
         try
@@ -24,7 +37,13 @@ public class ExceptionHandlingMiddleware
         }
     }
 
-    private Task HandleExceptionAsync(HttpContext context, Exception exception)
+    /// <summary>
+    /// Обрабатывает исключения и возвращает соответствующий ответ клиенту.
+    /// </summary>
+    /// <param name="context"> Контекст HTTP-запроса. </param>
+    /// <param name="exception"> Произошедшее исключение. </param>
+    /// <returns> Задача, представляющая асинхронную операцию записи ответа. </returns>
+    private static Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         var statusCode = HttpStatusCode.InternalServerError;
         var result = string.Empty;

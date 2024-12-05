@@ -1,12 +1,18 @@
 ﻿using HallOfFame.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Text.Json;
 
 namespace HallOfFame.DataAccess.Configurations;
 
+/// <summary>
+/// Конфигурация сущности <see cref="Person"/> для Entity Framework Core.
+/// </summary>
 public class PersonCfg : IEntityTypeConfiguration<Person>
 {
+    /// <summary>
+    /// Конфигурирует сущность <see cref="Person"/> с использованием указанного <see cref="EntityTypeBuilder{TEntity}"/>.
+    /// </summary>
+    /// <param name="builder"> Строитель типа сущности, используемый для настройки сущности. </param>
     public void Configure(EntityTypeBuilder<Person> builder)
     {
         builder.HasKey(p => p.Id);
@@ -23,9 +29,9 @@ public class PersonCfg : IEntityTypeConfiguration<Person>
             .HasMaxLength(50)
             .IsRequired();
 
-        builder.Property(p => p.Skills)
-            .HasConversion(
-                skills => JsonSerializer.Serialize(skills, (JsonSerializerOptions)null),
-                skills => JsonSerializer.Deserialize<List<Skill>>(skills, (JsonSerializerOptions)null));
+        builder.HasMany(p => p.Skills)
+            .WithOne()
+            .HasForeignKey(ps => ps.PersonId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

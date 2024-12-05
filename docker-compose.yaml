@@ -1,32 +1,36 @@
 version: '3.8'
 services:
+  # Сервис базы данных PostgreSQL
   postgres:
     container_name: Postgres
     image: postgres:latest
     environment:
-      POSTGRES_DB: "hallOfFame_db"
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "admin"
+      POSTGRES_DB: "hallOfFame_db" # Имя создаваемой базы данных.
+      POSTGRES_USER: "postgres"    # Имя пользователя для аутентификации.
+      POSTGRES_PASSWORD: "admin"   # Пароль пользователя.
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data  # Хранение данных базы на хосте для их сохранности при перезапуске контейнера.
     ports:
-      - "5432:5432"
+      - "5432:5432" # Проброс порта: внешний 5432 (хост) связан с портом 5432 контейнера.
     restart: always
 
+  # Сервис основного приложения Hall of Fame
   hallOfFame:
     image: hall_of_fame:latest
     container_name: HallOfFame
     build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
+      context: .              # Контекст сборки — текущая директория.
+      dockerfile: Dockerfile  # Имя Dockerfile, используемого для сборки образа.
+    environment:              # Переменные окружения для приложения.
       - DatabaseConnection=Server=postgres;Port=5432;Database=hallOfFame_db;User Id=postgres;Password=admin;
-      - ASPNETCORE_ENVIRONMENT=Development
+       # Строка подключения к базе данных PostgreSQL. Здесь используется имя сервиса "postgres".
+      - ASPNETCORE_ENVIRONMENT=Development  # Указывает, что приложение работает в режиме разработки.
     depends_on:
-      - postgres
+      - postgres  # Этот сервис должен запуститься после базы данных (postgres).
     ports:
-      - "8080:8080"
+      - "8080:8080"  # Проброс порта: внешний 8080 (хост) связан с портом 8080 контейнера.
     restart: always
 
+# Общий том для хранения данных PostgreSQL на хосте.
 volumes:
   postgres-data:
