@@ -1,4 +1,6 @@
-﻿namespace HallOfFame.Core;
+﻿using System.Net.Security;
+
+namespace HallOfFame.Core;
 
 /// <summary>
 /// Модель данных сотрудника.
@@ -71,19 +73,7 @@ public class Person
 
         if (skills != null && skills.Count > 0)
         {
-            foreach (var skill in skills)
-            {
-                var existingSkill = Skills.FirstOrDefault(s => s.SkillName == skill.SkillName);
-
-                if (existingSkill != null)
-                {
-                    existingSkill.SetLevel(skill.Level);
-                }
-                else
-                {
-                    Skills.Add(skill);
-                }
-            }
+            Skills = skills;
         }
     }
 }
